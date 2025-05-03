@@ -1,53 +1,52 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
-	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// ルートパスへのハンドラを設定
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello, World!")
+	// Ginルーターの初期化
+	r := gin.Default()
+
+	// ルーティングの設定
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Hello, World!",
+		})
 	})
 
-	http.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "こんにちは！")
+	r.GET("/hello", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "こんにちは！",
+		})
 	})
 
-	http.HandleFunc("/goodbye", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "さようなら！")
+	r.GET("/goodbye", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "さようなら！",
+		})
 	})
 
-	// GETリクエスト
-	http.HandleFunc("/get", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			http.Error(w, "GETメソッドのみ許可されています", http.StatusMethodNotAllowed)
+	// POSTの例
+	r.POST("/post", func(c *gin.Context) {
+		var json struct {
+			Message string `json:"message"`
+		}
+
+		if err := c.ShouldBindJSON(&json); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
 			return
 		}
-		fmt.Fprintf(w, "GETリクエストを受け取りました！")
+
+		c.JSON(http.StatusOK, gin.H{
+			"received": json.Message,
+		})
 	})
 
-	// POSTリクエスト
-	http.HandleFunc("/post", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, "POSTメソッドのみ許可されています", http.StatusMethodNotAllowed)
-			return
-		}
-		// POSTデータを読み取る
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, "リクエストボディの読み取りに失敗しました", http.StatusBadRequest)
-			return
-		}
-		fmt.Fprintf(w, "POSTリクエストを受け取りました！データ: %s", string(body))
-	})
-
-	// ポート番号を指定してサーバーを起動
-	fmt.Println("サーバーを起動します: http://localhost:8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		log.Fatal(err)
-	}
+	// サーバー起動
+	r.Run(":8080")
 }
