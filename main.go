@@ -22,6 +22,7 @@ func main() {
 	r.GET("/", HandleHome)
 	r.GET("/hello", HandleHello)
 	r.GET("/goodbye", HandleGoodbye)
+	r.GET("/concurrent", HandleConcurrent)
 
 	// POSTの例
 	r.POST("/post", HandlePost)
@@ -67,5 +68,13 @@ func HandlePost(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"received": json.Message,
+	})
+}
+
+// HandleConcurrent は並行処理のサンプルを実行するエンドポイントです
+func HandleConcurrent(c *gin.Context) {
+	RunConcurrentTasks()
+	c.JSON(http.StatusOK, Response{
+		Message: "並行処理が完了しました",
 	})
 }
