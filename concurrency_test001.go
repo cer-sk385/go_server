@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"sync"
 )
 
 func RunGreet() {
@@ -12,25 +11,21 @@ func RunGreet() {
 		"Hello from Goroutine 2",
 	}
 
-	// WaitGroupを初期化
-	var wg sync.WaitGroup
+	// 完了通知用のチャネルを作成
+	done := make(chan bool)
 
-	// リストの要素数だけ待機列へ追加する
-	wg.Add(len(greets))
-
-	// _はインデックスを省略するための変数
 	for _, msg := range greets {
 		// 無名関数
 		go func(msg string) {
-			// deferは最後に実行したい処理を予約する
-			// wgの待機列から１つ消す
-			defer wg.Done()
-
 			// msgを出力
 			fmt.Println(msg)
+			// 処理完了を通知
+			done <- true
 		}(msg) //匿名関数の即時実行
 	}
 
-	// wgが終了するまで待機
-	wg.Wait()
+	// 全てのゴルーチンの完了を待機
+	for range greets {
+		<-done
+	}
 }
